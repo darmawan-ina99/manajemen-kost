@@ -49,6 +49,7 @@ header { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.08); position: sticky
 .stat.green b { color: var(--green); } .stat.orange b { color: var(--orange); }
 .stat.purple b { color: var(--purple); } .stat.red b { color: var(--red); }
 .stat.blue b { color: var(--blue); font-size: 18px; }
+.stat.gray b { color: #475569; }
 
 /* LANTAI BARS */
 .lantai-bars { display: flex; flex-direction: column; gap: 10px; }
@@ -77,6 +78,8 @@ header { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.08); position: sticky
 .kamar.terisi .st { color: var(--green); background: #dcfce7; }
 .kamar.booking .st { color: var(--purple); background: #ede9fe; }
 .kamar.perbaikan .st { color: var(--red); background: #fee2e2; }
+.kamar.gudang .st { color: #475569; background: #e2e8f0; }
+.kamar.gudang { border-color: #cbd5e1; }
 .kamar.terisi { border-color: #86efac; }
 .kamar.booking { border-color: #c4b5fd; }
 

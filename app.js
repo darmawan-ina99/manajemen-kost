@@ -17,6 +17,7 @@ const labelBulan = ym => { const [y, m] = ym.split("-"); return `${BULAN[+m - 1]
 function dataAwal() {
   const rooms = {};
   ALL_KAMAR.forEach(no => rooms[no] = { status: "kosong", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] });
+  rooms[105] = { status: "gudang", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] };
   return { pin: "0021", rooms };
 }
 let D = muat();
@@ -38,7 +39,7 @@ function toast(msg) {
   clearTimeout(t._tm); t._tm = setTimeout(() => t.classList.add("hidden"), 2200);
 }
 const rupiah = n => "Rp" + (Number(n) || 0).toLocaleString("id-ID");
-const stLabel = { kosong: "Kosong", terisi: "Terisi", booking: "Booking", perbaikan: "Perbaikan" };
+const stLabel = { kosong: "Kosong", terisi: "Terisi", booking: "Booking", perbaikan: "Perbaikan", gudang: "Gudang" };
 const lunasBulan = (no, ym) => (D.rooms[no].bayar || []).includes(ym);
 
 // ===== LOGIN =====
@@ -63,12 +64,13 @@ document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () =>
 
 function render() {
   const rooms = D.rooms;
-  let isi = 0, kosong = 0, booking = 0, perbaikan = 0, omzet = 0;
+  let isi = 0, kosong = 0, booking = 0, perbaikan = 0, gudang = 0, omzet = 0;
   ALL_KAMAR.forEach(no => {
     const r = rooms[no];
     if (r.status === "terisi") { isi++; omzet += +r.harga || 0; }
     else if (r.status === "kosong") kosong++;
     else if (r.status === "booking") booking++;
+    else if (r.status === "gudang") gudang++;
     else perbaikan++;
   });
   document.getElementById("st-total").textContent = ALL_KAMAR.length;
@@ -76,6 +78,7 @@ function render() {
   document.getElementById("st-kosong").textContent = kosong;
   document.getElementById("st-booking").textContent = booking;
   document.getElementById("st-perbaikan").textContent = perbaikan;
+  document.getElementById("st-gudang").textContent = gudang;
   document.getElementById("st-omzet").textContent = rupiah(omzet);
 
   // lantai bars
