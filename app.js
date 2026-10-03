@@ -34,7 +34,45 @@ function muat() {
     return d;
   } catch { return dataAwal(); }
 }
-function simpan() { localStorage.setItem(KEY, JSON.stringify(D)); }
+const API_KOST = "https://solene-copy-808ddc96.base44.app/functions/kostApi";
+async function apiKost(action, payload) {
+  const r = await fetch(API_KOST, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action, payload }) });
+  return r.json();
+}
+let dirty = false, syncBusy = false, syncTimer = null, pinGantiLama = null;
+function setDot(cls, spin) {
+  const d = document.getElementById("sync-dot");
+  if (!d) return;
+  d.className = "sync-dot " + (cls || "");
+  if (spin) d.classList.add("spin");
+  const info = document.getElementById("sync-info");
+  if (info) info.textContent = dirty ? "Ada perubahan belum tersinkron." : ("Tersinkron " + new Date().toLocaleTimeString("id-ID"));
+}
+async function sinkronNow(manual) {
+  if (syncBusy) return;
+  if (!dirty) { if (manual) toast("✓ Data sudah tersinkron"); return; }
+  syncBusy = true; setDot("", true);
+  try {
+    const r = await apiKost("save", { pin: D.pin, pinLama: pinGantiLama || undefined, data: JSON.stringify(D) });
+    if (r.success) { dirty = false; pinGantiLama = null; setDot("ok"); if (manual) toast("✓ Tersinkron ke server"); }
+    else { setDot("warn"); if (manual) toast("⚠ " + (r.message || "Gagal sinkron") + " — coba lagi"); }
+  } catch { setDot("warn"); if (manual) toast("⚠ Koneksi server gagal — perubahan tetap aman di HP ini"); }
+  syncBusy = false;
+}
+async function muatUlang() {
+  if (!confirm("Ambil data terbaru dari server? Perubahan yang belum tersinkron di perangkat ini akan tertimpa.")) return;
+  try {
+    const r = await apiKost("login", { pin: D.pin });
+    if (r.success && r.data) { terapkanData(r.data); localStorage.setItem(KEY, JSON.stringify(D)); render(); dirty = false; setDot("ok"); toast("✓ Data dimuat dari server"); }
+    else toast("⚠ " + (r.message || "Tidak ada data di server"));
+  } catch { toast("⚠ Koneksi server gagal"); }
+}
+function simpan() {
+  localStorage.setItem(KEY, JSON.stringify(D));
+  dirty = true; setDot("warn");
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => sinkronNow(false), 3000);
+}
 function toast(msg) {
   const t = document.getElementById("toast");
   t.textContent = msg; t.classList.remove("hidden");
