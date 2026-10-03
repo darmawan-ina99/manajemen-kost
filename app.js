@@ -219,6 +219,7 @@ function bukaKamar(no) {
     </select>
     <label>Nama Penyewa</label><input id="m-nama" value="${r.nama || ""}" placeholder="Nama penghuni">
     <label>No. WhatsApp</label><input id="m-wa" value="${r.wa || ""}" placeholder="08xxxxxxxxxx">
+    <button class="btn gray m-kontak" type="button" onclick="pilihKontak('m')">📞 Ambil dari Buku Telepon</button>
     <label>Harga Sewa / bulan (Rp)</label><input id="m-harga" type="number" value="${r.harga || ""}" placeholder="contoh: 800000">
     <label>Tanggal Masuk</label><input id="m-masuk" type="date" value="${r.masuk || ""}">
     <label>Tanggal Jatuh Tempo Bulanan</label><input id="m-tempo" type="date" value="${r.tempo || ""}">
@@ -424,6 +425,34 @@ function resetData() {
 document.getElementById("pin-input").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
 // listener input sekali saja
 document.getElementById("in-kamar").addEventListener("change", isiDariKamar);
+
+// ===== CONTACT PICKER (buku telepon HP) =====
+function normalisasiWa(t) {
+  let n = String(t || "").replace(/\s/g, "").replace(/\D/g, "");
+  if (n.startsWith("+62")) n = "0" + n.slice(3);
+  else if (n.startsWith("62") && n.length > 10) n = "0" + n.slice(2);
+  return n;
+}
+async function pilihKontak(target) {
+  if (!("contacts" in navigator)) {
+    toast("❌ Browser/HP ini tidak mendukung (Chrome Android saja). Ketik nomor manual ya.");
+    return;
+  }
+  try {
+    const [c] = await navigator.contacts.select(["name", "tel"], { multiple: false });
+    if (!c) return;
+    const nama = (c.name && c.name[0]) || "";
+    const wa = (c.tel && c.tel[0]) || "";
+    const idNama = target === "in" ? "in-nama" : "m-nama";
+    const idWa = target === "in" ? "in-wa" : "m-wa";
+    if (nama) document.getElementById(idNama).value = nama;
+    document.getElementById(idWa).value = normalisasiWa(wa);
+    toast("✓ Kontak terambil: " + (nama || wa));
+  } catch (e) {
+    if (String(e).includes("InvalidState")) toast("❌ Harus lewat HTTPS / buka di Chrome Android");
+    else toast("❌ Gagal membuka kontak: " + e);
+  }
+}
 
 // ===== PENGELUARAN =====
 const ymDari = tgl => (tgl || "").slice(0, 7);
