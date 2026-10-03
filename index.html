@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kost Manager - Manajemen 46 Kamar</title>
+<meta name="description" content="Aplikasi manajemen kost: kamar, penyewa, tagihan bulanan.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>K</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="pin-gate">
+  <div class="pin-card">
+    <h1>🏠 Kost Manager</h1>
+    <p>46 Kamar • 4 Lantai</p>
+    <input type="password" id="pin-input" inputmode="numeric" maxlength="8" placeholder="PIN Admin">
+    <button onclick="login()">Masuk</button>
+    <p class="pin-err" id="pin-err"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header>
+    <div class="head-inner">
+      <h1>🏠 Kost Manager</h1>
+      <nav>
+        <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="tab" data-tab="kamar">🛏️ Kamar</button>
+        <button class="tab" data-tab="penghuni">👥 Penghuni</button>
+        <button class="tab" data-tab="tagihan">💰 Tagihan</button>
+        <button class="tab" data-tab="setelan">⚙️ Setelan</button>
+      </nav>
+      <button class="logout" onclick="logout()">Keluar</button>
+    </div>
+  </header>
+
+  <!-- DASHBOARD -->
+  <section id="tab-dashboard" class="tab-page">
+    <h2>Ringkasan</h2>
+    <div class="stats">
+      <div class="stat"><b id="st-total">0</b><span>Total Kamar</span></div>
+      <div class="stat green"><b id="st-isi">0</b><span>Terisi</span></div>
+      <div class="stat orange"><b id="st-kosong">0</b><span>Kosong</span></div>
+      <div class="stat purple"><b id="st-booking">0</b><span>Booking</span></div>
+      <div class="stat red"><b id="st-perbaikan">0</b><span>Perbaikan</span></div>
+      <div class="stat blue"><b id="st-omzet">0</b><span>Potensi Omzet/bln</span></div>
+    </div>
+    <h2>Okupansi per Lantai</h2>
+    <div class="lantai-bars" id="lantai-bars"></div>
+    <h2>Tagihan Bulan Ini: <span id="bln-ini"></span></h2>
+    <div class="bill-summary" id="bill-summary"></div>
+  </section>
+
+  <!-- KAMAR -->
+  <section id="tab-kamar" class="tab-page hidden">
+    <h2>Peta Kamar</h2>
+    <div id="lantai-wrap"></div>
+  </section>
+
+  <!-- PENGHUNI -->
+  <section id="tab-penghuni" class="tab-page hidden">
+    <h2>Daftar Penghuni Aktif</h2>
+    <div class="list" id="penghuni-list"></div>
+  </section>
+
+  <!-- TAGIHAN -->
+  <section id="tab-tagihan" class="tab-page hidden">
+    <h2>Tagihan Sewa</h2>
+    <div class="tagihan-nav">
+      <button onclick="ubahBulan(-1)">←</button>
+      <b id="tagihan-bulan"></b>
+      <button onclick="ubahBulan(1)">→</button>
+    </div>
+    <div class="list" id="tagihan-list"></div>
+  </section>
+
+  <!-- SETELAN -->
+  <section id="tab-setelan" class="tab-page hidden">
+    <h2>Setelan</h2>
+    <div class="setelan-card">
+      <h3>Backup Data</h3>
+      <p>Simpan seluruh data kost ke file (disarankan rutin).</p>
+      <button class="btn" onclick="exportData()">⬇ Unduh Backup JSON</button>
+      <h3>Restore Data</h3>
+      <input type="file" id="import-file" accept=".json">
+      <h3>Ganti PIN Admin</h3>
+      <div class="pin-change">
+        <input type="password" id="pin-lama" placeholder="PIN lama" maxlength="8">
+        <input type="password" id="pin-baru" placeholder="PIN baru (4-8 angka)" maxlength="8">
+        <button class="btn" onclick="gantiPin()">Simpan PIN</button>
+      </div>
+      <h3>Reset Data</h3>
+      <p class="danger-text">Hapus semua data penghuni & pembayaran (kamar tetap).</p>
+      <button class="btn danger" onclick="resetData()">Reset Semua Data</button>
+    </div>
+  </section>
+</div>
+
+<!-- MODAL DETAIL KAMAR -->
+<div class="overlay hidden" id="overlay" onclick="if(event.target===this)tutupModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>

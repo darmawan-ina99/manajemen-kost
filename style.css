@@ -1,0 +1,138 @@
+:root {
+  --blue: #2563eb; --blue-d: #1e40af;
+  --green: #16a34a; --orange: #f59e0b; --purple: #8b5cf6; --red: #dc2626;
+  --bg: #f1f5f9; --card: #fff; --text: #1e293b; --muted: #64748b;
+  --radius: 14px; --shadow: 0 2px 10px rgba(15,23,42,.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+.hidden { display: none !important; }
+
+/* PIN GATE */
+#pin-gate {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #1e3a8a, #2563eb 70%, #3b82f6); padding: 20px;
+}
+.pin-card { background: #fff; border-radius: 18px; padding: 34px 30px; text-align: center; width: 320px; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+.pin-card h1 { font-size: 22px; margin-bottom: 4px; }
+.pin-card p { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+.pin-card input {
+  width: 100%; text-align: center; font-size: 22px; letter-spacing: 8px; padding: 10px;
+  border: 2px solid #e2e8f0; border-radius: 10px; outline: none; margin-bottom: 12px;
+}
+.pin-card input:focus { border-color: var(--blue); }
+.pin-card button {
+  width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 10px;
+  padding: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.pin-err { color: var(--red); font-size: 13px; min-height: 18px; margin-top: 8px; font-weight: 600; }
+
+/* HEADER */
+header { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.08); position: sticky; top: 0; z-index: 40; }
+.head-inner { max-width: 1100px; margin: 0 auto; padding: 12px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.head-inner h1 { font-size: 20px; margin-right: auto; }
+.tab { border: none; background: none; padding: 9px 13px; border-radius: 9px; font-size: 14px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.tab.active { background: #eff6ff; color: var(--blue); }
+.tab:hover { color: var(--blue); }
+.logout { border: 1px solid #e2e8f0; background: #fff; border-radius: 9px; padding: 8px 13px; font-weight: 700; cursor: pointer; color: var(--muted); font-size: 13px; }
+
+/* PAGES */
+.tab-page { max-width: 1100px; margin: 0 auto; padding: 22px 18px 60px; }
+.tab-page h2 { font-size: 18px; margin: 14px 0 12px; }
+#bln-ini { color: var(--blue); }
+
+/* STATS */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; text-align: center; }
+.stat b { display: block; font-size: 26px; margin-bottom: 2px; }
+.stat span { font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.stat.green b { color: var(--green); } .stat.orange b { color: var(--orange); }
+.stat.purple b { color: var(--purple); } .stat.red b { color: var(--red); }
+.stat.blue b { color: var(--blue); font-size: 18px; }
+
+/* LANTAI BARS */
+.lantai-bars { display: flex; flex-direction: column; gap: 10px; }
+.lbar { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 12px 16px; }
+.lbar-top { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; margin-bottom: 7px; }
+.lbar-track { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.lbar-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #60a5fa); border-radius: 999px; }
+
+.bill-summary { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.bill-summary div { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14.5px; }
+.bill-summary div.total { border-top: 1px solid #eef2f7; margin-top: 6px; padding-top: 10px; font-weight: 800; }
+
+/* KAMAR */
+.lantai-box { margin-bottom: 22px; }
+.lantai-title { font-size: 15px; font-weight: 800; margin-bottom: 10px; color: var(--text); }
+.kamar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 10px; }
+.kamar {
+  border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer;
+  border: 2px solid transparent; transition: transform .12s, box-shadow .12s; background: var(--card);
+  box-shadow: var(--shadow);
+}
+.kamar:hover { transform: translateY(-3px); box-shadow: 0 8px 18px rgba(15,23,42,.14); }
+.kamar .no { font-weight: 800; font-size: 16px; }
+.kamar .st { font-size: 11px; font-weight: 700; margin-top: 3px; border-radius: 999px; padding: 2px 0; }
+.kamar.kosong .st { color: var(--orange); background: #fef3c7; }
+.kamar.terisi .st { color: var(--green); background: #dcfce7; }
+.kamar.booking .st { color: var(--purple); background: #ede9fe; }
+.kamar.perbaikan .st { color: var(--red); background: #fee2e2; }
+.kamar.terisi { border-color: #86efac; }
+.kamar.booking { border-color: #c4b5fd; }
+
+/* LIST (penghuni/tagihan) */
+.list { display: flex; flex-direction: column; gap: 10px; }
+.row { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 13px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.row .info { flex: 1; min-width: 170px; }
+.row .r-name { font-weight: 800; font-size: 15px; }
+.row .r-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.pill { font-size: 11.5px; font-weight: 800; padding: 4px 12px; border-radius: 999px; }
+.pill.ok { background: #dcfce7; color: var(--green); }
+.pill.late { background: #fee2e2; color: var(--red); }
+.btn { background: var(--blue); color: #fff; border: none; border-radius: 9px; padding: 9px 16px; font-weight: 700; font-size: 13px; cursor: pointer; }
+.btn:hover { background: var(--blue-d); }
+.btn.gray { background: #64748b; }
+.btn.danger { background: var(--red); }
+.empty { color: var(--muted); font-size: 14px; text-align: center; padding: 18px; }
+
+/* TAGIHAN NAV */
+.tagihan-nav { display: flex; align-items: center; gap: 12px; background: var(--card); border-radius: 12px; box-shadow: var(--shadow); padding: 10px 16px; margin-bottom: 14px; width: fit-content; }
+.tagihan-nav b { font-size: 15px; min-width: 130px; text-align: center; }
+.tagihan-nav button { border: none; background: #eff6ff; color: var(--blue); font-weight: 800; border-radius: 8px; padding: 6px 14px; cursor: pointer; font-size: 15px; }
+
+/* SETELAN */
+.setelan-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+.setelan-card h3 { font-size: 15px; margin: 18px 0 6px; }
+.setelan-card h3:first-child { margin-top: 0; }
+.setelan-card p { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
+.pin-change { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.pin-change input { border: 1.5px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: 14px; }
+.danger-text { color: var(--red); }
+
+/* MODAL */
+.overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 16px; }
+.modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 420px; max-height: 88vh; overflow-y: auto; animation: pop .2s ease-out; }
+@keyframes pop { from { transform: scale(.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal h3 { margin-bottom: 4px; font-size: 19px; }
+.modal .m-sub { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+.modal label { display: block; font-size: 12.5px; font-weight: 700; color: var(--muted); margin: 10px 0 4px; }
+.modal input, .modal select, .modal textarea {
+  width: 100%; border: 1.5px solid #e2e8f0; border-radius: 9px; padding: 9px 12px; font-size: 14px; outline: none; font-family: inherit;
+}
+.modal input:focus, .modal select:focus { border-color: var(--blue); }
+.m-actions { display: flex; gap: 8px; margin-top: 18px; }
+.m-actions .btn { flex: 1; padding: 11px; }
+.m-stats { background: #f8fafc; border-radius: 10px; padding: 10px 14px; margin-bottom: 6px; font-size: 13px; display: flex; justify-content: space-between; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1e293b; color: #fff;
+  padding: 11px 22px; border-radius: 999px; font-size: 13.5px; font-weight: 700; z-index: 200; box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
+
+@media (max-width: 640px) {
+  .head-inner { gap: 6px; }
+  .head-inner h1 { font-size: 17px; width: 100%; }
+  .tab { padding: 7px 9px; font-size: 12.5px; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+}
