@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kost Manager - Manajemen 46 Kamar</title>
+<title>Kost Kelinci Bunder - Kost Manager</title>
 <meta name="description" content="Aplikasi manajemen kost: kamar, penyewa, tagihan bulanan.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><text x='50' y='70' font-size='50' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>K</text></svg>">
 <link rel="stylesheet" href="style.css">
@@ -11,8 +11,8 @@
 <body>
 <div id="pin-gate">
   <div class="pin-card">
-    <h1>🏠 Kost Manager</h1>
-    <p>46 Kamar • 4 Lantai</p>
+    <h1>🏠 Kost Kelinci Bunder</h1>
+    <p>Kost Manager • 46 Kamar • 4 Lantai</p>
     <input type="password" id="pin-input" inputmode="numeric" maxlength="8" placeholder="PIN Admin">
     <button onclick="login()">Masuk</button>
     <p class="pin-err" id="pin-err"></p>
@@ -22,10 +22,11 @@
 <div id="app" class="hidden">
   <header>
     <div class="head-inner">
-      <h1>🏠 Kost Manager</h1>
+      <h1>🏠 Kost Kelinci Bunder</h1>
       <nav>
         <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
         <button class="tab" data-tab="kamar">🛏️ Kamar</button>
+        <button class="tab" data-tab="input">✏️ Input</button>
         <button class="tab" data-tab="penghuni">👥 Penghuni</button>
         <button class="tab" data-tab="tagihan">💰 Tagihan</button>
         <button class="tab" data-tab="setelan">⚙️ Setelan</button>
@@ -56,6 +57,38 @@
   <section id="tab-kamar" class="tab-page hidden">
     <h2>Peta Kamar</h2>
     <div id="lantai-wrap"></div>
+  </section>
+
+  <!-- INPUT CEPAT -->
+  <section id="tab-input" class="tab-page hidden">
+    <h2>Input Penyewa &amp; Harga Kamar</h2>
+    <div class="input-card">
+      <label>Pilih Kamar</label>
+      <select id="in-kamar"></select>
+      <label>Nama Penyewa *</label>
+      <input id="in-nama" placeholder="Nama lengkap penghuni">
+      <label>No. WhatsApp</label>
+      <input id="in-wa" placeholder="08xxxxxxxxxx (opsional)">
+      <label>Harga Sewa / bulan (Rp) *</label>
+      <input id="in-harga" type="number" placeholder="contoh: 800000">
+      <label>Tanggal Masuk</label>
+      <input id="in-masuk" type="date">
+      <label>Tanggal Jatuh Tempo Bulanan</label>
+      <input id="in-tempo" type="date">
+      <label>Catatan</label>
+      <input id="in-catatan" placeholder="opsional">
+      <button class="btn" style="width:100%;margin-top:16px;padding:13px;font-size:15px" onclick="simpanInput()">💾 Simpan Data Kamar</button>
+      <p class="input-hint" id="input-hint"></p>
+    </div>
+    <h2>Set Harga Massal per Lantai</h2>
+    <div class="input-card">
+      <p class="input-sub">Isi harga yang sama untuk semua kamar kosong di satu lantai sekaligus.</p>
+      <label>Lantai</label>
+      <select id="massal-lantai"></select>
+      <label>Harga Sewa / bulan (Rp)</label>
+      <input id="massal-harga" type="number" placeholder="contoh: 800000">
+      <button class="btn gray" style="width:100%;margin-top:14px" onclick="setHargaMassal()">Terapkan ke Kamar Kosong</button>
+    </div>
   </section>
 
   <!-- PENGHUNI -->

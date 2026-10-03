@@ -108,6 +108,7 @@ function render() {
   renderKamar();
   renderPenghuni();
   renderTagihan();
+  renderInput();
 }
 
 // ===== PETA KAMAR =====
@@ -219,6 +220,59 @@ function renderTagihan() {
 }
 function bayarDariList(no) { toggleBayar(no); }
 
+// ===== INPUT CEPAT =====
+function renderInput() {
+  const sel = document.getElementById("in-kamar");
+  sel.innerHTML = ALL_KAMAR.map(no => {
+    const r = D.rooms[no];
+    return `<option value="${no}">Kamar ${no}${r.status !== "kosong" ? " • " + stLabel[r.status] + (r.nama ? " (" + r.nama + ")" : "") : r.harga ? " • " + rupiah(r.harga) : ""}</option>`;
+  }).join("");
+  const ml = document.getElementById("massal-lantai");
+  ml.innerHTML = LANTAI.map((l, i) => `<option value="${i}">${l.nama}</option>`).join("");
+}
+function isiDariKamar() {
+  const no = +document.getElementById("in-kamar").value;
+  const r = D.rooms[no];
+  document.getElementById("in-nama").value = r.nama || "";
+  document.getElementById("in-wa").value = r.wa || "";
+  document.getElementById("in-harga").value = r.harga || "";
+  document.getElementById("in-masuk").value = r.masuk || "";
+  document.getElementById("in-tempo").value = r.tempo || "";
+  document.getElementById("in-catatan").value = r.catatan || "";
+}
+function simpanInput() {
+  const no = +document.getElementById("in-kamar").value;
+  const hint = document.getElementById("input-hint");
+  const nama = document.getElementById("in-nama").value.trim();
+  const harga = +document.getElementById("in-harga").value || 0;
+  if (!nama) { hint.className = "input-hint err"; hint.textContent = "❌ Nama penyewa wajib diisi"; return; }
+  if (!harga) { hint.className = "input-hint err"; hint.textContent = "❌ Harga sewa wajib diisi"; return; }
+  const r = D.rooms[no];
+  r.nama = nama;
+  r.harga = harga;
+  r.wa = document.getElementById("in-wa").value.trim();
+  r.masuk = document.getElementById("in-masuk").value;
+  r.tempo = document.getElementById("in-tempo").value;
+  r.catatan = document.getElementById("in-catatan").value.trim();
+  if (r.status === "kosong") r.status = "terisi";
+  if (r.status === "gudang") { hint.className = "input-hint err"; hint.textContent = "❌ Kamar " + no + " adalah gudang, tidak bisa diisi"; return; }
+  simpan(); render();
+  hint.className = "input-hint ok";
+  hint.textContent = `✓ Kamar ${no}: ${nama} tersimpan (${rupiah(harga)}/bln)`;
+  toast(`✓ Kamar ${no} tersimpan`);
+}
+function setHargaMassal() {
+  const li = +document.getElementById("massal-lantai").value;
+  const harga = +document.getElementById("massal-harga").value || 0;
+  if (!harga) { toast("❌ Isi harga dulu"); return; }
+  const l = LANTAI[li];
+  const nos = Array.from({ length: l.jumlah }, (_, i) => l.mulai + i).filter(no => D.rooms[no].status === "kosong");
+  if (!nos.length) { toast("Tidak ada kamar kosong di " + l.nama); return; }
+  if (!confirm(`Set harga ${rupiah(harga)} ke ${nos.length} kamar kosong di ${l.nama}?`)) return;
+  nos.forEach(no => D.rooms[no].harga = harga);
+  simpan(); render(); toast(`✓ ${nos.length} kamar di ${l.nama} diset ${rupiah(harga)}`);
+}
+
 // ===== SETELAN =====
 function exportData() {
   const blob = new Blob([JSON.stringify(D, null, 2)], { type: "application/json" });
@@ -257,3 +311,5 @@ function resetData() {
 
 // enter untuk login
 document.getElementById("pin-input").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
+// listener input sekali saja
+document.getElementById("in-kamar").addEventListener("change", isiDariKamar);
