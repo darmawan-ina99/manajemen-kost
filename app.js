@@ -18,7 +18,7 @@ function dataAwal() {
   const rooms = {};
   ALL_KAMAR.forEach(no => rooms[no] = { status: "kosong", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] });
   rooms[105] = { status: "gudang", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] };
-  return { pin: "0021", rooms };
+  return { pin: "0021", rooms, mutasi: [] };
 }
 let D = muat();
 function muat() {
@@ -29,6 +29,7 @@ function muat() {
     const base = dataAwal();
     ALL_KAMAR.forEach(no => { d.rooms[no] = Object.assign(base.rooms[no], d.rooms[no] || {}); });
     d.pin = d.pin || "0021";
+    d.mutasi = Array.isArray(d.mutasi) ? d.mutasi : [];
     return d;
   } catch { return dataAwal(); }
 }
@@ -41,6 +42,16 @@ function toast(msg) {
 const rupiah = n => "Rp" + (Number(n) || 0).toLocaleString("id-ID");
 const stLabel = { kosong: "Kosong", terisi: "Terisi", booking: "Booking", perbaikan: "Perbaikan", gudang: "Gudang" };
 const lunasBulan = (no, ym) => (D.rooms[no].bayar || []).includes(ym);
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+function catatMasuk(no, nama, harga) {
+  D.mutasi.push({ kamar: no, nama, harga: harga || 0, masuk: D.rooms[no].masuk || todayISO(), keluar: "" });
+}
+function catatKeluar(no, nama) {
+  const m = D.mutasi.find(x => x.kamar === no && x.nama === nama && !x.keluar);
+  if (m) m.keluar = todayISO();
+  else D.mutasi.push({ kamar: no, nama, harga: 0, masuk: "", keluar: todayISO() });
+}
 
 // ===== LOGIN =====
 function login() {
@@ -154,6 +165,7 @@ function tutupModal() { document.getElementById("overlay").classList.add("hidden
 
 function simpanKamar(no) {
   const r = D.rooms[no];
+  const oldNama = r.nama;
   const status = document.getElementById("m-status").value;
   const nama = document.getElementById("m-nama").value.trim();
   r.status = status;
@@ -164,7 +176,10 @@ function simpanKamar(no) {
   r.tempo = document.getElementById("m-tempo").value;
   r.catatan = document.getElementById("m-catatan").value.trim();
   if (status === "terisi" && !nama) { toast("⚠ Isi nama penyewa untuk kamar terisi"); return; }
+  if (oldNama && nama !== oldNama) catatKeluar(no, oldNama);
+  if (nama && nama !== oldNama) catatMasuk(no, nama, r.harga);
   if (status !== "terisi") r.nama = "";
+  if (!r.nama && oldNama) catatKeluar(no, oldNama);
   simpan(); tutupModal(); render(); toast(`✓ Kamar ${no} disimpan`);
 }
 function toggleBayar(no) {
@@ -177,6 +192,8 @@ function toggleBayar(no) {
 }
 function kosongkanKamar(no) {
   if (!confirm(`Kosongkan kamar ${no}? Data penyewa & riwayat bayar dihapus.`)) return;
+  const rk = D.rooms[no];
+  if (rk.nama) catatKeluar(no, rk.nama);
   D.rooms[no] = { status: "kosong", nama: "", wa: "", harga: D.rooms[no].harga, masuk: "", tempo: "", catatan: "", bayar: [] };
   simpan(); tutupModal(); render(); toast(`Kamar ${no} dikosongkan`);
 }
@@ -248,6 +265,7 @@ function simpanInput() {
   if (!nama) { hint.className = "input-hint err"; hint.textContent = "❌ Nama penyewa wajib diisi"; return; }
   if (!harga) { hint.className = "input-hint err"; hint.textContent = "❌ Harga sewa wajib diisi"; return; }
   const r = D.rooms[no];
+  const oldNama = r.nama;
   r.nama = nama;
   r.harga = harga;
   r.wa = document.getElementById("in-wa").value.trim();
@@ -256,6 +274,8 @@ function simpanInput() {
   r.catatan = document.getElementById("in-catatan").value.trim();
   if (r.status === "kosong") r.status = "terisi";
   if (r.status === "gudang") { hint.className = "input-hint err"; hint.textContent = "❌ Kamar " + no + " adalah gudang, tidak bisa diisi"; return; }
+  if (oldNama && nama !== oldNama) catatKeluar(no, oldNama);
+  if (nama && nama !== oldNama) catatMasuk(no, nama, harga);
   simpan(); render();
   hint.className = "input-hint ok";
   hint.textContent = `✓ Kamar ${no}: ${nama} tersimpan (${rupiah(harga)}/bln)`;
@@ -313,3 +333,125 @@ function resetData() {
 document.getElementById("pin-input").addEventListener("keydown", e => { if (e.key === "Enter") login(); });
 // listener input sekali saja
 document.getElementById("in-kamar").addEventListener("change", isiDariKamar);
+
+// ===== EKSPOR PDF =====
+function cekJspdf() {
+  if (window.jspdf && window.jspdf.jsPDF) return true;
+  toast("❌ Library PDF belum termuat (cek koneksi), memakai mode cetak...");
+  return false;
+}
+function buatDoc() {
+  const { jsPDF } = window.jspdf;
+  return { doc: new jsPDF({ unit: "mm", format: "a4" }) };
+}
+function headerPdf(doc, judul, sub) {
+  doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+  doc.text("KOST KELINCI BUNDER", 105, 14, { align: "center" });
+  doc.setFont("helvetica", "normal"); doc.setFontSize(10);
+  doc.text(judul + " — " + sub, 105, 21, { align: "center" });
+  doc.setFontSize(7.5); doc.setTextColor(110);
+  doc.text("Dicetak: " + new Date().toLocaleString("id-ID"), 196, 14, { align: "right" });
+  doc.setTextColor(0);
+  doc.setDrawColor(180); doc.line(14, 25, 196, 25);
+}
+function tabel(doc, y, cols, rows) {
+  const x0 = 14, hH = 7, hR = 7;
+  const gambarHeader = yy => {
+    doc.setFillColor(226, 232, 240); doc.rect(x0, yy, cols.reduce((s, c) => s + c.w, 0), hH, "F");
+    doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
+    let x = x0;
+    cols.forEach(c => { doc.text(String(c.t).slice(0, 30), x + 2, yy + 4.8); x += c.w; });
+    return yy + hH;
+  };
+  let x = x0;
+  doc.setDrawColor(200);
+  cols.forEach(c => { doc.line(x, y, x + c.w, y); x += c.w; });
+  y = gambarHeader(y);
+  doc.setFont("helvetica", "normal");
+  rows.forEach((r, idx) => {
+    if (y > 272) { doc.addPage(); y = gambarHeader(16); }
+    if (idx % 2 === 1) { doc.setFillColor(248, 250, 252); doc.rect(x0, y, cols.reduce((s, c) => s + c.w, 0), hR, "F"); }
+    let xx = x0;
+    cols.forEach(c => { doc.text(String(r[c.k] ?? "-").slice(0, c.max || 40), xx + 2, y + 4.8); xx += c.w; });
+    doc.setDrawColor(220);
+    x = x0;
+    cols.forEach(c => { doc.line(x, y + hR, x + c.w, y + hR); x += c.w; });
+    y += hR;
+  });
+  return y;
+}
+
+function pdfPembayaran() {
+  const ym = bulanTagihan;
+  const isi = ALL_KAMAR.filter(no => D.rooms[no].status === "terisi");
+  if (!isi.length) { toast("Tidak ada kamar terisi"); return; }
+  if (!cekJspdf()) return cetakPembayaran();
+  const { doc } = buatDoc();
+  headerPdf(doc, "LAPORAN PEMBAYARAN", labelBulan(ym));
+  let lunas = 0, belum = 0, tL = 0, tB = 0;
+  const rows = isi.map(no => {
+    const r = D.rooms[no];
+    const ok = lunasBulan(no, ym);
+    if (ok) { lunas++; tL += +r.harga || 0; } else { belum++; tB += +r.harga || 0; }
+    return { no: no, nama: r.nama, harga: rupiah(r.harga), status: ok ? "LUNAS" : "BELUM" };
+  });
+  const y = tabel(doc, 30, [
+    { k: "no", t: "Kamar", w: 18, max: 6 },
+    { k: "nama", t: "Nama Penyewa", w: 66, max: 38 },
+    { k: "harga", t: "Harga/Bulan", w: 36, max: 14 },
+    { k: "status", t: "Status", w: 30, max: 10 },
+  ], rows);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+  doc.text("Sudah bayar: " + lunas + " kamar — " + rupiah(tL), 14, y + 8);
+  doc.text("Belum bayar: " + belum + " kamar — " + rupiah(tB), 14, y + 14);
+  doc.setFontSize(11);
+  doc.text("TOTAL TAGIHAN BULAN INI: " + rupiah(tL + tB), 14, y + 22);
+  doc.save("Laporan-Pembayaran-" + ym + ".pdf");
+  toast("✓ PDF laporan pembayaran dibuat");
+}
+
+function pdfMutasi() {
+  if (!D.mutasi.length) { toast("Belum ada riwayat penyewa masuk/keluar"); return; }
+  if (!cekJspdf()) return cetakMutasi();
+  const { doc } = buatDoc();
+  headerPdf(doc, "LAPORAN IN / OUT PENYEWA", "Semua Periode");
+  const rows = D.mutasi.slice().sort((a, b) => String(a.masuk).localeCompare(String(b.masuk))).map(m => ({
+    kamar: m.kamar, nama: m.nama, masuk: m.masuk || "-", keluar: m.keluar || "-",
+    harga: rupiah(m.harga), status: m.keluar ? "KELUAR" : "AKTIF",
+  }));
+  tabel(doc, 30, [
+    { k: "kamar", t: "Kamar", w: 16, max: 5 },
+    { k: "nama", t: "Nama Penyewa", w: 54, max: 30 },
+    { k: "masuk", t: "Masuk", w: 26, max: 10 },
+    { k: "keluar", t: "Keluar", w: 26, max: 10 },
+    { k: "harga", t: "Harga", w: 30, max: 12 },
+    { k: "status", t: "Status", w: 20, max: 7 },
+  ], rows);
+  doc.save("Laporan-In-Out-Penyewa-" + todayISO() + ".pdf");
+  toast("✓ PDF laporan in/out dibuat");
+}
+
+// fallback: mode cetak browser (Save as PDF)
+function cetakHtml(judul, rowsHtml) {
+  const w = window.open("", "_blank");
+  if (!w) { toast("❌ Popup diblokir browser"); return; }
+  w.document.write(`<html><head><title>${judul}</title><style>
+    body{font-family:Arial;padding:20px}h2{text-align:center}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th,td{border:1px solid #999;padding:6px;text-align:left}th{background:#e2e8f0}
+  </style></head><body><h2>KOST KELINCI BUNDER</h2><p style="text-align:center">${judul}</p>${rowsHtml}
+  <p style="font-size:10px">Dicetak: ${new Date().toLocaleString("id-ID")}</p></body></html>`);
+  w.document.close(); setTimeout(() => w.print(), 400);
+}
+function cetakPembayaran() {
+  const ym = bulanTagihan;
+  const rows = ALL_KAMAR.filter(no => D.rooms[no].status === "terisi").map(no => {
+    const r = D.rooms[no];
+    return `<tr><td>${no}</td><td>${r.nama}</td><td>${rupiah(r.harga)}</td><td>${lunasBulan(no, ym) ? "LUNAS" : "BELUM"}</td></tr>`;
+  }).join("");
+  cetakHtml("Laporan Pembayaran — " + labelBulan(ym), `<table><tr><th>Kamar</th><th>Nama</th><th>Harga</th><th>Status</th></tr>${rows}</table>`);
+}
+function cetakMutasi() {
+  const rows = D.mutasi.map(m => `<tr><td>${m.kamar}</td><td>${m.nama}</td><td>${m.masuk || "-"}</td><td>${m.keluar || "-"}</td><td>${m.keluar ? "KELUAR" : "AKTIF"}</td></tr>`).join("");
+  cetakHtml("Laporan In/Out Penyewa", `<table><tr><th>Kamar</th><th>Nama</th><th>Masuk</th><th>Keluar</th><th>Status</th></tr>${rows}</table>`);
+}

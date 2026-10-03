@@ -151,3 +151,5 @@ header { background: #fff; box-shadow: 0 1px 0 rgba(0,0,0,.08); position: sticky
 .input-hint.ok { color: var(--green); }
 .input-hint.err { color: var(--red); }
 .input-sub { font-size: 13.5px; color: var(--muted); margin-bottom: 4px; }
+
+.rep-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }

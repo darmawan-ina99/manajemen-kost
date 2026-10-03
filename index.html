@@ -93,7 +93,7 @@
 
   <!-- PENGHUNI -->
   <section id="tab-penghuni" class="tab-page hidden">
-    <h2>Daftar Penghuni Aktif</h2>
+    <div class="rep-bar"><h2 style="margin:0">Daftar Penghuni Aktif</h2><button class="btn" onclick="pdfMutasi()">📄 Laporan In/Out (PDF)</button></div>
     <div class="list" id="penghuni-list"></div>
   </section>
 
@@ -104,6 +104,7 @@
       <button onclick="ubahBulan(-1)">←</button>
       <b id="tagihan-bulan"></b>
       <button onclick="ubahBulan(1)">→</button>
+      <button class="btn" style="margin-left:10px" onclick="pdfPembayaran()">📄 PDF</button>
     </div>
     <div class="list" id="tagihan-list"></div>
   </section>
@@ -136,6 +137,7 @@
 </div>
 
 <div id="toast" class="hidden"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
