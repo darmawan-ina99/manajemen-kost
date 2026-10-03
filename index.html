@@ -38,6 +38,7 @@
         <button class="tab" data-tab="input">✏️ Input</button>
         <button class="tab" data-tab="penghuni">👥 Penghuni</button>
         <button class="tab" data-tab="tagihan">💰 Tagihan</button>
+        <button class="tab" data-tab="pengeluaran">💸 Pengeluaran</button>
         <button class="tab" data-tab="setelan">⚙️ Setelan</button>
       </nav>
     </div>
@@ -115,6 +116,39 @@
       <button class="btn" style="margin-left:10px" onclick="pdfPembayaran()">📄 PDF</button>
     </div>
     <div class="list" id="tagihan-list"></div>
+  </section>
+
+  <!-- PENGELUARAN -->
+  <section id="tab-pengeluaran" class="tab-page hidden">
+    <h2>Pengeluaran Kost</h2>
+    <div class="tagihan-nav">
+      <button onclick="ubahBulan(-1)">←</button>
+      <b id="pengeluaran-bulan"></b>
+      <button onclick="ubahBulan(1)">→</button>
+      <button class="btn" style="margin-left:10px" onclick="pdfPengeluaran()">📄 PDF</button>
+    </div>
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat blue"><b id="pl-masuk">0</b><span>Pemasukan (Lunas)</span></div>
+      <div class="stat red"><b id="pl-keluar">0</b><span>Pengeluaran</span></div>
+      <div class="stat green"><b id="pl-saldo">0</b><span>Saldo Bulan Ini</span></div>
+    </div>
+    <div class="input-card">
+      <h3 style="margin:0 0 4px">Tambah Pengeluaran</h3>
+      <label>Tanggal</label>
+      <input id="pl-tanggal" type="date">
+      <label>Kategori</label>
+      <select id="pl-kategori">
+        <option>Listrik</option><option>Air</option><option>Kebersihan</option>
+        <option>Perbaikan</option><option>Gaji Penjaga</option><option>Pajak/Retriibusi</option><option>Lain-lain</option>
+      </select>
+      <label>Keterangan</label>
+      <input id="pl-ket" placeholder="contoh: bayar token listrik lantai 2">
+      <label>Jumlah (Rp) *</label>
+      <input id="pl-jumlah" type="number" placeholder="contoh: 150000">
+      <button class="btn" style="width:100%;margin-top:14px" onclick="simpanPengeluaran()">💾 Simpan Pengeluaran</button>
+    </div>
+    <h2>Riwayat Pengeluaran Bulan Ini</h2>
+    <div class="list" id="pengeluaran-list"></div>
   </section>
 
   <!-- SETELAN -->

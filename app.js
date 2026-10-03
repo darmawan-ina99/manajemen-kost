@@ -18,7 +18,7 @@ function dataAwal() {
   const rooms = {};
   ALL_KAMAR.forEach(no => rooms[no] = { status: "kosong", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] });
   rooms[105] = { status: "gudang", nama: "", wa: "", harga: 0, masuk: "", tempo: "", catatan: "", bayar: [] };
-  return { pin: "0021", rooms, mutasi: [] };
+  return { pin: "0021", rooms, mutasi: [], pengeluaran: [] };
 }
 let D = muat();
 function muat() {
@@ -30,6 +30,7 @@ function muat() {
     ALL_KAMAR.forEach(no => { d.rooms[no] = Object.assign(base.rooms[no], d.rooms[no] || {}); });
     d.pin = d.pin || "0021";
     d.mutasi = Array.isArray(d.mutasi) ? d.mutasi : [];
+    d.pengeluaran = Array.isArray(d.pengeluaran) ? d.pengeluaran : [];
     return d;
   } catch { return dataAwal(); }
 }
@@ -120,6 +121,7 @@ function render() {
   renderPenghuni();
   renderTagihan();
   renderInput();
+  renderPengeluaran();
 }
 
 // ===== PETA KAMAR =====
@@ -355,6 +357,45 @@ document.getElementById("pin-input").addEventListener("keydown", e => { if (e.ke
 // listener input sekali saja
 document.getElementById("in-kamar").addEventListener("change", isiDariKamar);
 
+// ===== PENGELUARAN =====
+const ymDari = tgl => (tgl || "").slice(0, 7);
+function renderPengeluaran() {
+  const ym = bulanTagihan;
+  document.getElementById("pengeluaran-bulan").textContent = labelBulan(ym);
+  let masuk = 0;
+  ALL_KAMAR.forEach(no => { const r = D.rooms[no]; if (r.status === "terisi" && lunasBulan(no, ym)) masuk += +r.harga || 0; });
+  const bulanIni = (D.pengeluaran || []).filter(x => ymDari(x.tanggal) === ym);
+  const keluar = bulanIni.reduce((s, x) => s + (+x.jumlah || 0), 0);
+  document.getElementById("pl-masuk").textContent = rupiah(masuk);
+  document.getElementById("pl-keluar").textContent = rupiah(keluar);
+  document.getElementById("pl-saldo").textContent = rupiah(masuk - keluar);
+  document.getElementById("pengeluaran-list").innerHTML = bulanIni.length
+    ? bulanIni.slice().sort((x, y) => String(y.tanggal).localeCompare(String(x.tanggal))).map(x => `
+      <div class="row">
+        <div class="info"><div class="r-name">${x.kategori}${x.ket ? " — " + x.ket : ""}</div>
+        <div class="r-sub">${x.tanggal || "-"} • ${rupiah(x.jumlah)}</div></div>
+        <button class="btn danger" onclick="hapusPengeluaran('${x.id}')">🗑</button>
+      </div>`).join("")
+    : `<p class="empty">Belum ada pengeluaran bulan ${labelBulan(ym)}.</p>`;
+}
+function simpanPengeluaran() {
+  const tanggal = document.getElementById("pl-tanggal").value || todayISO();
+  const kategori = document.getElementById("pl-kategori").value;
+  const ket = document.getElementById("pl-ket").value.trim();
+  const jumlah = +document.getElementById("pl-jumlah").value || 0;
+  if (!jumlah) { toast("❌ Isi jumlah pengeluaran"); return; }
+  D.pengeluaran.push({ id: "p" + Date.now(), tanggal, kategori, ket, jumlah });
+  simpan(); render();
+  document.getElementById("pl-ket").value = "";
+  document.getElementById("pl-jumlah").value = "";
+  toast("✓ Pengeluaran " + rupiah(jumlah) + " dicatat");
+}
+function hapusPengeluaran(id) {
+  if (!confirm("Hapus catatan pengeluaran ini?")) return;
+  D.pengeluaran = D.pengeluaran.filter(x => x.id !== id);
+  simpan(); render(); toast("Pengeluaran dihapus");
+}
+
 // ===== EKSPOR PDF =====
 function cekJspdf() {
   if (window.jspdf && window.jspdf.jsPDF) return true;
@@ -427,6 +468,12 @@ function pdfPembayaran() {
   doc.text("Belum bayar: " + belum + " kamar — " + rupiah(tB), 14, y + 14);
   doc.setFontSize(11);
   doc.text("TOTAL TAGIHAN BULAN INI: " + rupiah(tL + tB), 14, y + 22);
+  const plg = (D.pengeluaran || []).filter(x => String(x.tanggal).slice(0, 7) === ym);
+  const totPlg = plg.reduce((s, x) => s + (+x.jumlah || 0), 0);
+  doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+  doc.text("Pengeluaran kost bulan ini: " + rupiah(totPlg) + " (" + plg.length + " catatan)", 14, y + 30);
+  doc.setFont("helvetica", "bold");
+  doc.text("SALDO BERSIH (MASUK - KELUAR): " + rupiah(tL - totPlg), 14, y + 37);
   doc.save("Laporan-Pembayaran-" + ym + ".pdf");
   toast("✓ PDF laporan pembayaran dibuat");
 }
@@ -475,4 +522,38 @@ function cetakPembayaran() {
 function cetakMutasi() {
   const rows = D.mutasi.map(m => `<tr><td>${m.kamar}</td><td>${m.nama}</td><td>${m.masuk || "-"}</td><td>${m.keluar || "-"}</td><td>${m.keluar ? "KELUAR" : "AKTIF"}</td></tr>`).join("");
   cetakHtml("Laporan In/Out Penyewa", `<table><tr><th>Kamar</th><th>Nama</th><th>Masuk</th><th>Keluar</th><th>Status</th></tr>${rows}</table>`);
+}
+
+function pdfPengeluaran() {
+  const ym = bulanTagihan;
+  const plg = (D.pengeluaran || []).filter(x => String(x.tanggal).slice(0, 7) === ym)
+    .sort((x, y) => String(x.tanggal).localeCompare(String(y.tanggal)));
+  let masuk = 0;
+  ALL_KAMAR.forEach(no => { const r = D.rooms[no]; if (r.status === "terisi" && lunasBulan(no, ym)) masuk += +r.harga || 0; });
+  const keluar = plg.reduce((s, x) => s + (+x.jumlah || 0), 0);
+  if (!cekJspdf()) return cetakPengeluaran();
+  const { doc } = buatDoc();
+  headerPdf(doc, "LAPORAN PENGELUARAN", labelBulan(ym));
+  const rows = plg.map((x, idx) => ({ no: idx + 1, tanggal: x.tanggal, kategori: x.kategori, ket: x.ket || "-", jumlah: rupiah(x.jumlah) }));
+  if (!rows.length) rows.push({ no: "-", tanggal: "-", kategori: "-", ket: "Tidak ada pengeluaran", jumlah: "-" });
+  const y = tabel(doc, 30, [
+    { k: "no", t: "No", w: 12, max: 4 },
+    { k: "tanggal", t: "Tanggal", w: 26, max: 10 },
+    { k: "kategori", t: "Kategori", w: 34, max: 14 },
+    { k: "ket", t: "Keterangan", w: 56, max: 32 },
+    { k: "jumlah", t: "Jumlah", w: 34, max: 14 },
+  ], rows);
+  doc.setFont("helvetica", "bold"); doc.setFontSize(9.5);
+  doc.text("Total Pemasukan (lunas): " + rupiah(masuk), 14, y + 8);
+  doc.text("Total Pengeluaran: " + rupiah(keluar), 14, y + 14);
+  doc.setFontSize(11);
+  doc.text("SALDO BERSIH BULAN " + labelBulan(ym).toUpperCase() + ": " + rupiah(masuk - keluar), 14, y + 22);
+  doc.save("Laporan-Pengeluaran-" + ym + ".pdf");
+  toast("✓ PDF laporan pengeluaran dibuat");
+}
+function cetakPengeluaran() {
+  const ym = bulanTagihan;
+  const plg = (D.pengeluaran || []).filter(x => String(x.tanggal).slice(0, 7) === ym);
+  const rows = plg.map(x => `<tr><td>${x.tanggal}</td><td>${x.kategori}</td><td>${x.ket || "-"}</td><td>${rupiah(x.jumlah)}</td></tr>`).join("");
+  cetakHtml("Laporan Pengeluaran — " + labelBulan(ym), `<table><tr><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Jumlah</th></tr>${rows || "<tr><td colspan=4>-</td></tr>"}</table>`);
 }
