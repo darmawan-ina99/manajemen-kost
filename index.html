@@ -22,8 +22,17 @@
 <div id="app" class="hidden">
   <header>
     <div class="head-inner">
-      <h1>🏠 Kost Kelinci Bunder</h1>
-      <nav>
+      <div class="head-row">
+        <div class="head-brand">
+          <span class="logo">🏠</span>
+          <div>
+            <h1>Kost Kelinci Bunder</h1>
+            <span class="tagline">Kost Manager • 46 Kamar • 4 Lantai</span>
+          </div>
+        </div>
+        <button class="logout" onclick="logout()">Keluar</button>
+      </div>
+      <nav class="nav-scroll">
         <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
         <button class="tab" data-tab="kamar">🛏️ Kamar</button>
         <button class="tab" data-tab="input">✏️ Input</button>
@@ -31,7 +40,6 @@
         <button class="tab" data-tab="tagihan">💰 Tagihan</button>
         <button class="tab" data-tab="setelan">⚙️ Setelan</button>
       </nav>
-      <button class="logout" onclick="logout()">Keluar</button>
     </div>
   </header>
 
@@ -136,6 +144,7 @@
   <div class="modal" id="modal"></div>
 </div>
 
+<footer>Kost Kelinci Bunder — dikelola dengan Kost Manager © 2026</footer>
 <div id="toast" class="hidden"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="app.js"></script>

@@ -231,11 +231,32 @@ function renderTagihan() {
       <div class="info"><div class="r-name">${r.nama} — Kamar ${no}</div>
       <div class="r-sub">${rupiah(r.harga)}${r.wa ? " • " + r.wa : ""}</div></div>
       <span class="pill ${ok ? "ok" : "late"}">${ok ? "LUNAS" : "BELUM"}</span>
+      ${!ok ? `<button class="btn wa" onclick="kirimTagihanWA(${no})">💬 Tagihan WA</button>` : ""}
       <button class="btn ${ok ? "gray" : ""}" onclick="bayarDariList(${no})">${ok ? "↩ Batal" : "✓ Lunas"}</button>
     </div>`;
   }).join("") : `<p class="empty">Tidak ada kamar terisi.</p>`;
 }
 function bayarDariList(no) { toggleBayar(no); }
+
+// ===== KIRIM TAGIHAN VIA WHATSAPP =====
+function kirimTagihanWA(no) {
+  const r = D.rooms[no];
+  if (!r.wa) { toast("❌ Nomor WA kamar " + no + " belum diisi (isi di menu Input)"); return; }
+  const ym = bulanTagihan;
+  const wa62 = "62" + r.wa.replace(/^0/, "").replace(/\D/g, "");
+  const tempoTxt = r.tempo ? new Date(r.tempo + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "akhir bulan";
+  const msg = `Selamat pagi/siang 🙏
+
+Saya admin *Kost Kelinci Bunder*.
+
+Tagihan sewa kamar *${no}* untuk bulan *${labelBulan(ym)}*:
+💰 ${rupiah(r.harga)}
+
+Mohon pembayaran sebelum *${tempoTxt}*. Jika sudah membayar, abaikan pesan ini ya.
+
+Terima kasih 🙏`;
+  window.open(`https://wa.me/${wa62}?text=${encodeURIComponent(msg)}`, "_blank");
+}
 
 // ===== INPUT CEPAT =====
 function renderInput() {
