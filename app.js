@@ -55,13 +55,43 @@ function catatKeluar(no, nama) {
 }
 
 // ===== LOGIN =====
-function login() {
+function terapkanData(d) {
+  const base = dataAwal();
+  d.rooms = d.rooms || {};
+  ALL_KAMAR.forEach(no => { base.rooms[no] = Object.assign(base.rooms[no], d.rooms[no] || {}); });
+  d.mutasi = Array.isArray(d.mutasi) ? d.mutasi : [];
+  d.pengeluaran = Array.isArray(d.pengeluaran) ? d.pengeluaran : [];
+  d.pin = d.pin || base.pin;
+  D = d;
+}
+async function login() {
   const v = document.getElementById("pin-input").value.trim();
-  if (v === D.pin) {
-    document.getElementById("pin-gate").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    render();
-  } else document.getElementById("pin-err").textContent = "❌ PIN salah";
+  const err = document.getElementById("pin-err");
+  if (!v) { err.textContent = "Isi PIN dulu"; return; }
+  err.textContent = "⏳ Memeriksa...";
+  try {
+    const r = await apiKost("login", { pin: v });
+    if (r.baru) {
+      // pertama kali online: pakai data lokal lalu unggah
+      if (v === D.pin) {
+        dirty = true; sinkronNow(false);
+        masukApp();
+      } else err.textContent = "❌ PIN salah";
+    } else if (r.success && r.data) {
+      terapkanData(r.data);
+      simpan(); // localStorage mirror
+      masukApp();
+    } else err.textContent = "❌ " + (r.message || "PIN salah");
+  } catch {
+    // server tak terjangkau: mode offline dengan data lokal
+    if (v === D.pin) { masukApp(); toast("⚠ Mode offline: perubahan hanya tersimpan di perangkat ini"); }
+    else err.textContent = "❌ PIN salah (server tak terjangkau)";
+  }
+}
+function masukApp() {
+  document.getElementById("pin-gate").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  render();
 }
 function logout() { document.getElementById("app").classList.add("hidden"); document.getElementById("pin-gate").classList.remove("hidden"); document.getElementById("pin-input").value = ""; }
 
@@ -342,7 +372,7 @@ function gantiPin() {
   const baru = document.getElementById("pin-baru").value.trim();
   if (lama !== D.pin) { toast("❌ PIN lama salah"); return; }
   if (!/^\d{4,8}$/.test(baru)) { toast("❌ PIN baru 4-8 angka"); return; }
-  D.pin = baru; simpan(); toast("✓ PIN berhasil diganti");
+  D.pin = baru; pinGantiLama = lama; simpan(); toast("✓ PIN berhasil diganti & disinkron");
   document.getElementById("pin-lama").value = ""; document.getElementById("pin-baru").value = "";
 }
 function resetData() {

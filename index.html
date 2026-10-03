@@ -30,7 +30,7 @@
             <span class="tagline">Kost Manager • 46 Kamar • 4 Lantai</span>
           </div>
         </div>
-        <button class="logout" onclick="logout()">Keluar</button>
+        <div class="head-right"><span id="sync-dot" class="sync-dot" onclick="sinkronNow(true)" title="Status sinkron — klik untuk sinkron sekarang">⟳</span><button class="logout" onclick="logout()">Keluar</button></div>
       </div>
       <nav class="nav-scroll">
         <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
@@ -155,6 +155,12 @@
   <section id="tab-setelan" class="tab-page hidden">
     <h2>Setelan</h2>
     <div class="setelan-card">
+      <h3>Sinkronisasi Online</h3>
+      <p>Data tersimpan di server, tersinkron otomatis antar perangkat. Perubahan terkirim beberapa detik setelah kamu menyimpan. <span id="sync-info" style="font-weight:700">Belum sinkron.</span></p>
+      <div class="pin-change">
+        <button class="btn" onclick="sinkronNow(true)">☁ Sinkron Sekarang</button>
+        <button class="btn gray" onclick="muatUlang()">⬇ Muat Ulang dari Server</button>
+      </div>
       <h3>Backup Data</h3>
       <p>Simpan seluruh data kost ke file (disarankan rutin).</p>
       <button class="btn" onclick="exportData()">⬇ Unduh Backup JSON</button>

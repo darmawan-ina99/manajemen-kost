@@ -165,3 +165,16 @@ footer { text-align: center; padding: 26px 16px 30px; color: var(--muted); font-
 
 .btn.wa { background: #25d366; }
 .btn.wa:hover { background: #1faf55; }
+
+/* SINKRON */
+.head-right { display: flex; align-items: center; gap: 10px; }
+.sync-dot {
+  width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,.15);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 17px; cursor: pointer; border: 1.5px solid rgba(255,255,255,.25); transition: background .2s;
+}
+.sync-dot:hover { background: rgba(255,255,255,.28); }
+.sync-dot.ok { background: #16a34a; border-color: #16a34a; }
+.sync-dot.warn { background: #f59e0b; border-color: #f59e0b; }
+.sync-dot.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
